@@ -1,0 +1,57 @@
+name: Remove a Preview Environment
+
+env:
+  STRUXHUB_GPR_USER: ${{ secrets.STRUXHUB_GPR_USER }}
+  STRUXHUB_GPR_TOKEN: ${{ secrets.STRUXHUB_GPR_TOKEN }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    #
+    # TODO Change here the variables needed for this application
+    #
+    - name: Set Variables for this Workflow
+      id: vars
+      run: |
+        export PREVIEW_ENV=pr-$(echo ${GITHUB_HEAD_REF##*/} | sed "s/[^[:alpha:][:digit:]]/-/g" | tr '[:upper:]' '[:lower:]')
+        export PREVIEW_ENV=${PREVIEW_ENV:0:30}
+        echo "::set-output name=app::$(jq -r .name .github/app-config.json)"
+        echo "::set-output name=namespace::admin-dev"
+        echo "::set-output name=environment::dev"
+        echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
+        echo "::set-output name=preview_env::$PREVIEW_ENV"
+        echo "::set-output name=target_url::https://$PREVIEW_ENV.${{inputs.domainUrl}}"
+
+    - name: Get Last GitHub deployment
+      uses: simpleactions/get-last-deployment@v1.0.0
+      id: last_deployment
+      with:
+        github_token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
+        environment: ${{ steps.vars.outputs.preview_env }}
+
+    - name: Authenticate into Google Cloud Platform
+      uses: google-github-actions/setup-gcloud@master
+      with:
+        service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Configure Kubernetes
+      run: |
+        gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
+        kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
+
+    - name: Remove Preview Environment
+      run: |
+        sed 's/PREVIEW_ENV/${{ steps.vars.outputs.preview_env }}/g;s/COMMIT_ID/${{ steps.vars.outputs.unique_id }}/g' deploy/preview-app-template.yaml | kubectl delete -f -
+
+    - name: Update deployment status (inactive)
+      uses: simpleactions/create-deployment-status@v1.0.0
+      with:
+        github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
+        deployment_id: ${{ steps.last_deployment.outputs.deployment_id }}
+        state: inactive

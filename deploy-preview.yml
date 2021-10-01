@@ -2,7 +2,10 @@ name: Deploy a Preview Environment
 
 inputs:
   domainUrl:
-    description: “URL for the domain, with subdomain. eg.: dev.struxsite.com”
+    description: "URL for the domain, with subdomain. eg.: dev.struxsite.com"
+    required: true
+  namespace:
+    description: "Namespace name"
     required: true
 
 env:
@@ -38,12 +41,11 @@ jobs:
           export PREVIEW_ENV=pr-$(echo ${GITHUB_HEAD_REF##*/} | sed "s/[^[:alpha:][:digit:]]/-/g" | tr '[:upper:]' '[:lower:]')
           export PREVIEW_ENV=${PREVIEW_ENV:0:30}
           echo "::set-output name=app::$(jq -r .name .github/app-config.json)"
-          echo "::set-output name=namespace::admin-dev"
           echo "::set-output name=environment::dev"
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
           echo "::set-output name=commit_id::${GITHUB_SHA:0:8}"
           echo "::set-output name=preview_env::$PREVIEW_ENV"
-          echo "::set-output name=target_url::https://$PREVIEW_ENV.${{inputs.registry_username}}"
+          echo "::set-output name=target_url::https://$PREVIEW_ENV.${{inputs.domainUrl}}"
 
       - name: Create GitHub deployment
         uses: simpleactions/create-deployment@v1.0.0
@@ -75,7 +77,7 @@ jobs:
       - name: Configure Kubernetes
         run: |
           gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
-          kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
+          kubectl config set-context --current --namespace=${{ inputs.namespace }}
 
       - name: Build Docker image
         run: |
