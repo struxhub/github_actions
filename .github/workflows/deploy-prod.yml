@@ -9,16 +9,16 @@ on:
     secrets:
       STRUXHUB_GPR_USER:
         required: true
-        type: string
       STRUXHUB_GPR_TOKEN:
         required: true
-        type: string
       SENTRY_AUTH_TOKEN:
         required: true
-        type: string
       SENTRY_ORG:
         required: true
-        type: string
+      GCP_SA_EMAIL:
+        required: true
+      GCP_SA_KEY:
+        required: true
 
 jobs:
   deploy:
