@@ -1,13 +1,12 @@
 name: Remember merge strategy
 
-on:
-  pull_request_review:
-    types:
-      - submitted
 
-env:
-  STRUXHUB_GPR_USER: ${{ ${{inputs.STRUXHUB_GPR_USER}} }}
-  STRUXHUB_GPR_TOKEN: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+on:
+  workflow_call:
+    secrets:
+      STRUXHUB_GPR_TOKEN:
+        required: true
+        type: string
 
 jobs:
   develop-merge:
@@ -19,7 +18,7 @@ jobs:
         if: success()
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
-          github_token: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+          github_token: ${{ ${{secrets.STRUXHUB_GPR_TOKEN}} }}
           issue_number: ${{ github.event.pull_request.number }}
           body: |
             This pull request was approved.
@@ -37,7 +36,7 @@ jobs:
         if: success()
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
-          github_token: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+          github_token: ${{ ${{secrets.STRUXHUB_GPR_TOKEN}} }}
           issue_number: ${{ github.event.pull_request.number }}
           body: |
             This pull request was approved.

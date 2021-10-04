@@ -6,6 +6,7 @@ on:
       appName:
         required: true
         type: string
+    secrets:
       STRUXHUB_GPR_USER:
         required: true
         type: string
@@ -55,7 +56,7 @@ jobs:
         uses: simpleactions/create-deployment@v1.0.0
         id: deployment
         with:
-          github_token: ${{ inputs.STRUXHUB_GPR_TOKEN }}
+          github_token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
           environment: ${{ steps.vars.outputs.preview_env }}
           ref: ${{ github.head_ref }}
           transient_environment: true
@@ -63,7 +64,7 @@ jobs:
       - name: Update deployment status (pending)
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{inputs.STRUXHUB_GPR_TOKEN}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: pending
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -71,8 +72,8 @@ jobs:
       - name: Authenticate into Google Cloud Platform
         uses: google-github-actions/setup-gcloud@master
         with:
-          service_account_email: ${{ inputs.GCP_SA_EMAIL }}
-          service_account_key: ${{ inputs.GCP_SA_KEY }}
+          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
 
       - name: Configure Docker to use Google Cloud Platform
         run: |
@@ -85,7 +86,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --build-arg STRUXHUB_GPR_USER=${inputs.STRUXHUB_GPR_USER} --build-arg STRUXHUB_GPR_TOKEN=${inputs.STRUXHUB_GPR_TOKEN} --build-arg VERSION=${{ steps.vars.outputs.version }} --tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.commit_id }} .
+          docker build --build-arg STRUXHUB_GPR_USER=${secrets.STRUXHUB_GPR_USER} --build-arg STRUXHUB_GPR_TOKEN=${secrets.STRUXHUB_GPR_TOKEN} --build-arg VERSION=${{ steps.vars.outputs.version }} --tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.commit_id }} .
 
       - name: Push image to Google Cloud Container Registry
         run: |
@@ -101,7 +102,7 @@ jobs:
         if: success()
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
-          github_token: ${{inputs.STRUXHUB_GPR_TOKEN}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
             A [preview environment](${{ steps.vars.outputs.target_url }}) created and will be removed when this PR closes!
 
@@ -109,7 +110,7 @@ jobs:
         if: success()
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{inputs.STRUXHUB_GPR_TOKEN}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: success
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -119,7 +120,7 @@ jobs:
         if: failure()
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{inputs.STRUXHUB_GPR_TOKEN}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: failure
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

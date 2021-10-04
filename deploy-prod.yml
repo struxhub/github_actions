@@ -6,6 +6,7 @@ on:
       appName:
         required: true
         type: string
+    secrets:
       STRUXHUB_GPR_USER:
         required: true
         type: string
@@ -18,10 +19,6 @@ on:
       SENTRY_ORG:
         required: true
         type: string
-
-env:
-  STRUXHUB_GPR_USER: ${{ ${{inputs.STRUXHUB_GPR_USER}} }}
-  STRUXHUB_GPR_TOKEN: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
 
 jobs:
   deploy:
@@ -55,7 +52,7 @@ jobs:
       - name: Create Release
         uses: actions/create-release@latest
         env:
-          GITHUB_TOKEN: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+          GITHUB_TOKEN: ${{ ${{secrets.STRUXHUB_GPR_TOKEN}} }}
         with:
           tag_name: v${{ steps.vars.outputs.version }}
           release_name: Release ${{ steps.vars.outputs.version }}
@@ -68,7 +65,7 @@ jobs:
         uses: simpleactions/create-deployment@v1.0.0
         id: deployment
         with:
-          github_token: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+          github_token: ${{ ${{secrets.STRUXHUB_GPR_TOKEN}} }}
           environment: ${{ steps.vars.outputs.environment }}
           ref: ${{ steps.tag.outputs.ref }}
           production_environment: true
@@ -76,7 +73,7 @@ jobs:
       - name: Update deployment status (pending)
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: pending
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -84,8 +81,8 @@ jobs:
       - name: Authenticate into Google Cloud Platform
         uses: google-github-actions/setup-gcloud@master
         with:
-          service_account_email: ${{ inputs.GCP_SA_EMAIL }}
-          service_account_key: ${{ inputs.GCP_SA_KEY }}
+          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
 
       - name: Configure Docker to use Google Cloud Platform
         run: |
@@ -123,14 +120,14 @@ jobs:
         if: success() && steps.current_version.outputs.has_value != 'true'
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
-          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
           body: |
             The version `${{ steps.vars.outputs.version }}` was deployed to production environment.
 
       - name: Add release to sentry
         env:
-          SENTRY_AUTH_TOKEN: ${{ inputs.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ inputs.SENTRY_ORG }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: graphql
           ENVIRONMENT_NAME: Production
         run: |
@@ -149,7 +146,7 @@ jobs:
         if: success() && steps.current_version.outputs.has_value == 'true'
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
-          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
           body: |
             The version `${{ steps.vars.outputs.version }}` was deployed to production environment.
 
@@ -163,7 +160,7 @@ jobs:
         if: success()
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: success
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -175,7 +172,7 @@ jobs:
         if: failure()
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: failure
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
