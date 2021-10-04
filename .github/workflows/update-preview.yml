@@ -56,13 +56,13 @@ jobs:
         uses: simpleactions/get-last-deployment@v1.0.0
         id: deployment
         with:
-          github_token: ${{ ${{secrets.STRUXHUB_GPR_TOKEN}} }}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           environment: ${{ steps.vars.outputs.preview_env }}
 
       - name: Update deployment status (pending)
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: pending
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -100,7 +100,7 @@ jobs:
         if: success()
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
             A [preview environment](${{ steps.vars.outputs.target_url }}) was created and will be removed when this PR was closed!
 
@@ -108,7 +108,7 @@ jobs:
         if: success()
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: success
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -118,7 +118,7 @@ jobs:
         if: failure()
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: failure
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

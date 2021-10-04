@@ -50,7 +50,7 @@ jobs:
       - name: Create Pre Release
         uses: actions/create-release@latest
         env:
-          GITHUB_TOKEN: ${{ ${{secrets.STRUXHUB_GPR_TOKEN}} }}
+          GITHUB_TOKEN: ${{secrets.STRUXHUB_GPR_TOKEN}}
         with:
           tag_name: v${{ steps.vars.outputs.version }}
           release_name: Release ${{ steps.vars.outputs.version }}
@@ -63,14 +63,14 @@ jobs:
         uses: simpleactions/create-deployment@v1.0.0
         id: deployment
         with:
-          github_token: ${{ ${{secrets.STRUXHUB_GPR_TOKEN}} }}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           environment: ${{ steps.vars.outputs.environment }}
           ref: ${{ steps.tag.outputs.ref }}
 
       - name: Update deployment status (pending)
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: pending
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -117,7 +117,7 @@ jobs:
         if: success() && steps.current_version.outputs.has_value != 'true'
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
             The version `${{ steps.vars.outputs.version }}` was deployed to QA environment.
 
@@ -125,7 +125,7 @@ jobs:
         if: success() && steps.current_version.outputs.has_value == 'true'
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
             The version `${{ steps.vars.outputs.version }}` was deployed to QA environment.
 
@@ -157,7 +157,7 @@ jobs:
         if: success()
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: success
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -168,7 +168,7 @@ jobs:
         if: failure()
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: failure
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

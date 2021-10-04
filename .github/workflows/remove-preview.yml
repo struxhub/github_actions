@@ -50,7 +50,7 @@ jobs:
         uses: simpleactions/get-last-deployment@v1.0.0
         id: last_deployment
         with:
-          github_token: ${{ ${{secrets.STRUXHUB_GPR_TOKEN}} }}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           environment: ${{ steps.vars.outputs.preview_env }}
 
       - name: Authenticate into Google Cloud Platform
@@ -71,6 +71,6 @@ jobs:
       - name: Update deployment status (inactive)
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
-          github_token: ${{${{secrets.STRUXHUB_GPR_TOKEN}}}}
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           deployment_id: ${{ steps.last_deployment.outputs.deployment_id }}
           state: inactive
