@@ -94,7 +94,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --build-arg STRUXHUB_GPR_USER=${secrets.STRUXHUB_GPR_USER} --build-arg STRUXHUB_GPR_TOKEN=${secrets.STRUXHUB_GPR_TOKEN} --build-arg VERSION=${{ steps.vars.outputs.version }} --tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }} .
+          docker build --build-arg STRUXHUB_GPR_USER=${{secrets.STRUXHUB_GPR_USER}} --build-arg STRUXHUB_GPR_TOKEN=${{secrets.STRUXHUB_GPR_TOKEN}} --build-arg VERSION=${{ steps.vars.outputs.version }} --tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }} .
 
       - name: Push image to Google Cloud Container Registry
         run: |
