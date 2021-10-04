@@ -32,7 +32,7 @@ on:
 jobs:
   cleanup:
     name: Remove the Preview Environment
-    if: github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
+    if: github.event.action == 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
