@@ -44,7 +44,7 @@ jobs:
           export PREVIEW_ENV=pr-$(echo ${GITHUB_HEAD_REF##*/} | sed "s/[^[:alpha:][:digit:]]/-/g" | tr '[:upper:]' '[:lower:]')
           export PREVIEW_ENV=${PREVIEW_ENV:0:30}
           echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-dev-version )"
-          echo "::set-output name=${{inputs.appName}}"
+          echo "::set-output name=app::${{inputs.appName}}"
           echo "::set-output name=namespace::dev"
           echo "::set-output name=environment::dev"
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"

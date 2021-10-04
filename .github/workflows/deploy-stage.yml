@@ -42,7 +42,7 @@ jobs:
         id: vars
         run: |
           echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-rc-version )"
-          echo "::set-output name=${{inputs.appName}}"
+          echo "::set-output name=app::${{inputs.appName}}"
           echo "::set-output name=namespace::stage"
           echo "::set-output name=environment::stage"
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"

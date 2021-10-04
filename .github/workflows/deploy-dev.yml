@@ -42,8 +42,8 @@ jobs:
       - name: Set Variables for this Workflow
         id: vars
         run: |
-          echo "::set-output name=version::$( pwsh ./version-tool.ps1 next-dev-version )"
-          echo "::set-output name=${{inputs.appName}}"
+          echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-dev-version )"
+          echo "::set-output name=app::${{inputs.appName}}"
           echo "::set-output name=namespace::dev"
           echo "::set-output name=environment::dev"
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"

@@ -43,7 +43,7 @@ jobs:
         id: vars
         run: |
           echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-version )"
-          echo "::set-output name=${{inputs.appName}}"
+          echo "::set-output name=app::${{inputs.appName}}"
           echo "::set-output name=namespace::prod"
           echo "::set-output name=environment::prod"
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
