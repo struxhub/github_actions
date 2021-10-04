@@ -20,10 +20,6 @@ on:
         required: true
       STRUXHUB_GPR_TOKEN:
         required: true
-      SENTRY_AUTH_TOKEN:
-        required: true
-      SENTRY_ORG:
-        required: true
       GCP_SA_EMAIL:
         required: true
       GCP_SA_KEY:
@@ -145,24 +141,6 @@ jobs:
             ```
             /rollback dev ${{ steps.current_version.outputs.value }}
             ```
-
-      # - name: Add release to sentry
-      #   env:
-      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-      #     SENTRY_PROJECT: graphql
-      #     ENVIRONMENT_NAME: Development
-      #   run: |
-      #     # Install Sentry CLI
-      #     curl -sL https://sentry.io/get-cli/ | bash
-
-      #     # Create new Sentry release
-      #     sentry-cli releases new -p $SENTRY_PROJECT ${{ steps.vars.outputs.version }}
-      #     sentry-cli releases set-commits --initial-depth 20 --ignore-empty ${{ steps.vars.outputs.version }}
-      #     sentry-cli releases finalize ${{ steps.vars.outputs.version }}
-
-      #     # Create new deploy for this Sentry release
-      #     sentry-cli releases deploys ${{ steps.vars.outputs.version }} new -e ${ENVIRONMENT_NAME}
 
       - name: Update deployment status (success)
         if: success()

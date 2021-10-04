@@ -20,10 +20,6 @@ on:
         required: true
       STRUXHUB_GPR_TOKEN:
         required: true
-      SENTRY_AUTH_TOKEN:
-        required: true
-      SENTRY_ORG:
-        required: true
       GCP_SA_EMAIL:
         required: true
       GCP_SA_KEY:
