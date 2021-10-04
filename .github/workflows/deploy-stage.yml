@@ -106,11 +106,11 @@ jobs:
       #
       - name: Push image to Google Cloud Container Registry
         run: |
-          docker pull gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }}
-          docker tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }} gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.version }}
-          docker tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }} gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:stage-latest
-          docker push gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.version }}
-          docker push gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:stage-latest
+          docker pull gcr.io/${{inputs.projectName}}/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }}
+          docker tag gcr.io/${{inputs.projectName}}/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }} gcr.io/${{inputs.projectName}}/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.version }}
+          docker tag gcr.io/${{inputs.projectName}}/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }} gcr.io/${{inputs.projectName}}/${{ steps.vars.outputs.app }}:stage-latest
+          docker push gcr.io/${{inputs.projectName}}/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.version }}
+          docker push gcr.io/${{inputs.projectName}}/${{ steps.vars.outputs.app }}:stage-latest
 
       - name: Get Current Deployed Version
         id: current_version
