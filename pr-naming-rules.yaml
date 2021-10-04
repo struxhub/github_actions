@@ -1,0 +1,19 @@
+name: 'PR Naming Rules'
+on:
+  pull_request:
+    types: [edited, opened, synchronize, reopened]
+
+jobs:
+  title-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: naveenk1223/action-pr-title@master
+        with:
+          # Regex the title should match.
+          # regular pr: 'f/0000/feature name'
+          # release pr: 'release/2021.WK01.01'
+          regex: '^(.+\/[0-9]+\/.+)|(release\/[0-9]+.((WK)|(wk))[0-9]+.[0-9]+)|(Bump .+)$'
+          allowed_prefixes: 'feature,f,bug,b,chore,c,enhancement,hotfix,release,td,Bump ' # title should start with the given prefix
+          prefix_case_sensitive: true # title prefix are case insensitive
+          min_length: 10 # Min length of the title
+          max_length: -1 # Max length of the title

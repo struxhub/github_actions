@@ -1,0 +1,129 @@
+name: Update a Preview Environment
+
+on:
+  workflow_call:
+    inputs: 
+      appName:
+        required: true
+        type: string
+      STRUXHUB_GPR_USER:
+        required: true
+        type: string
+      STRUXHUB_GPR_TOKEN:
+        required: true
+        type: string
+      SENTRY_AUTH_TOKEN:
+        required: true
+        type: string
+      SENTRY_ORG:
+        required: true
+        type: string
+      GCP_SA_EMAIL:
+        required: true
+        type: string
+      GCP_SA_KEY:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy the Preview Environment
+    if: github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Fetch repository history
+        run: |
+          git fetch
+
+      #
+      # TODO Change here the variables needed for this application
+      #
+      - name: Set Variables for this Workflow
+        id: vars
+        run: |
+          export PREVIEW_ENV=pr-$(echo ${GITHUB_HEAD_REF##*/} | sed "s/[^[:alpha:][:digit:]]/-/g" | tr '[:upper:]' '[:lower:]')
+          export PREVIEW_ENV=${PREVIEW_ENV:0:30}
+          echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-dev-version )"
+          echo "::set-output name=${{inputs.appName}}"
+          echo "::set-output name=namespace::dev"
+          echo "::set-output name=environment::dev"
+          echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
+          echo "::set-output name=commit_id::${GITHUB_SHA:0:8}"
+          echo "::set-output name=preview_env::$PREVIEW_ENV"
+          echo "::set-output name=target_url::https://$PREVIEW_ENV.dev.struxsite.com"
+
+      - name: Get Last GitHub deployment
+        uses: simpleactions/get-last-deployment@v1.0.0
+        id: deployment
+        with:
+          github_token: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+          environment: ${{ steps.vars.outputs.preview_env }}
+
+      - name: Update deployment status (pending)
+        uses: simpleactions/create-deployment-status@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          state: pending
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Authenticate into Google Cloud Platform
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_email: ${{ inputs.GCP_SA_EMAIL }}
+          service_account_key: ${{ inputs.GCP_SA_KEY }}
+
+      - name: Configure Docker to use Google Cloud Platform
+        run: |
+          gcloud auth configure-docker --quiet
+
+      - name: Configure Kubernetes
+        run: |
+          gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
+          kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
+
+      - name: Build Docker image
+        run: |
+          docker build --build-arg STRUXHUB_GPR_USER=${inputs.STRUXHUB_GPR_USER} --build-arg STRUXHUB_GPR_TOKEN=${inputs.STRUXHUB_GPR_TOKEN} --build-arg VERSION=${{ steps.vars.outputs.version }} --tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.commit_id }} .
+
+      - name: Push image to Google Cloud Container Registry
+        run: |
+          docker push gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.commit_id }}
+          docker tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.commit_id }} gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }}
+          docker push gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }}
+
+      - name: Deploy Preview App
+        run: |
+          sed 's/PREVIEW_ENV/${{ steps.vars.outputs.preview_env }}/g;s/COMMIT_ID/${{ steps.vars.outputs.commit_id }}/g' deploy/preview-app-template.yaml | kubectl apply -f -
+
+      - name: Comment with success message
+        if: success()
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          body: |
+            A [preview environment](${{ steps.vars.outputs.target_url }}) was created and will be removed when this PR was closed!
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: simpleactions/create-deployment-status@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          state: success
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          environment_url: ${{ steps.vars.outputs.target_url }}
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: simpleactions/create-deployment-status@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          state: failure
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

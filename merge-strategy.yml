@@ -1,0 +1,49 @@
+name: Remember merge strategy
+
+on:
+  pull_request_review:
+    types:
+      - submitted
+
+env:
+  STRUXHUB_GPR_USER: ${{ ${{inputs.STRUXHUB_GPR_USER}} }}
+  STRUXHUB_GPR_TOKEN: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+
+jobs:
+  develop-merge:
+    if: github.event.pull_request.base.ref == 'develop' && github.event.review.state == 'approved'
+    name: Add master develop strategy comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment with success message
+        if: success()
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+          issue_number: ${{ github.event.pull_request.number }}
+          body: |
+            This pull request was approved.
+
+            When merging a develop pull request, to maintain a cleaner history, use `Squash and merge` strategy.
+
+            - [ ] Use `Squash and merge` when merging
+
+  master-merge:
+    if: github.event.pull_request.base.ref == 'master' && github.event.review.state == 'approved'
+    name: Add master merge strategy comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment with success message
+        if: success()
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+          issue_number: ${{ github.event.pull_request.number }}
+          body: |
+            This pull request was approved.
+
+            When merging to master, to maintain a cleaner and linear history, use the `fast-forward` strategy.
+
+            GitHub doesn't  allow you to fast-forward merge, to do that use the merge comment command:
+
+             - [ ] Comment `/merge` on this PR to merge

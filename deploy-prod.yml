@@ -1,0 +1,181 @@
+name: Deploy to Production Environment
+
+on:
+  workflow_call:
+    inputs: 
+      appName:
+        required: true
+        type: string
+      STRUXHUB_GPR_USER:
+        required: true
+        type: string
+      STRUXHUB_GPR_TOKEN:
+        required: true
+        type: string
+      SENTRY_AUTH_TOKEN:
+        required: true
+        type: string
+      SENTRY_ORG:
+        required: true
+        type: string
+
+env:
+  STRUXHUB_GPR_USER: ${{ ${{inputs.STRUXHUB_GPR_USER}} }}
+  STRUXHUB_GPR_TOKEN: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+
+jobs:
+  deploy:
+    # Check if it was merged and not just discarded
+    if: github.event.pull_request.merged
+    name: Deploy the Production Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Fetch repository history
+        run: |
+          git fetch
+
+      #
+      # TODO Change here the variables needed for this application
+      #
+      - name: Set Variables for this Workflow
+        id: vars
+        run: |
+          echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-version )"
+          echo "::set-output name=${{inputs.appName}}"
+          echo "::set-output name=namespace::prod"
+          echo "::set-output name=environment::prod"
+          echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
+          echo "::set-output name=target_url::https://sandbox.struxhub.com"
+
+      - name: Create Release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+        with:
+          tag_name: v${{ steps.vars.outputs.version }}
+          release_name: Release ${{ steps.vars.outputs.version }}
+          body: |
+            Automated version for v${{ steps.vars.outputs.version }}
+          draft: false
+          prerelease: false
+
+      - name: Create GitHub deployment
+        uses: simpleactions/create-deployment@v1.0.0
+        id: deployment
+        with:
+          github_token: ${{ ${{inputs.STRUXHUB_GPR_TOKEN}} }}
+          environment: ${{ steps.vars.outputs.environment }}
+          ref: ${{ steps.tag.outputs.ref }}
+          production_environment: true
+
+      - name: Update deployment status (pending)
+        uses: simpleactions/create-deployment-status@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          state: pending
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Authenticate into Google Cloud Platform
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_email: ${{ inputs.GCP_SA_EMAIL }}
+          service_account_key: ${{ inputs.GCP_SA_KEY }}
+
+      - name: Configure Docker to use Google Cloud Platform
+        run: |
+          gcloud auth configure-docker --quiet
+
+      - name: Configure Kubernetes
+        run: |
+          gcloud container clusters get-credentials struxhub-app --zone us-central1-a --project struxhub-app
+          kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
+
+      #
+      # We do not rebuild the docker image, we grab the current image for this PR and
+      # retag it as the release version and the latest
+      #
+      - name: Push image to Google Cloud Container Registry
+        run: |
+          docker pull gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }}
+          docker tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }} gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.version }}
+          docker tag gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.unique_id }} gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:latest
+          docker push gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.version }}
+          docker push gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:latest
+
+      - name: Get Current Deployed Version
+        id: current_version
+        run: |
+          export CURRENT_VERSION=$(kubectl get app/${{ steps.vars.outputs.app }} -o jsonpath='{.spec.image}' | sed -rn 's/^[^:]+:(.+)$/\1/p')
+          echo "::set-output name=value::$CURRENT_VERSION"
+          if [[ ! -z "$CURRENT_VERSION" ]]; then echo "::set-output name=has_value::true"; fi
+
+      - name: Deploy App
+        run: |
+          sed 's/ENVIRONMENT/${{ steps.vars.outputs.environment }}/g;s/VERSION/${{ steps.vars.outputs.version }}/g' deploy/app.yaml | kubectl apply -f -
+
+      - name: Comment with first version message
+        if: success() && steps.current_version.outputs.has_value != 'true'
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          body: |
+            The version `${{ steps.vars.outputs.version }}` was deployed to production environment.
+
+      - name: Add release to sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ inputs.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ inputs.SENTRY_ORG }}
+          SENTRY_PROJECT: graphql
+          ENVIRONMENT_NAME: Production
+        run: |
+          # Install Sentry CLI
+          curl -sL https://sentry.io/get-cli/ | bash
+
+          # Create new Sentry release
+          sentry-cli releases new -p $SENTRY_PROJECT ${{ steps.vars.outputs.version }}
+          sentry-cli releases set-commits --initial-depth 20 --ignore-missing ${{ steps.vars.outputs.version }}
+          sentry-cli releases finalize ${{ steps.vars.outputs.version }}
+
+          # Create new deploy for this Sentry release
+          sentry-cli releases deploys ${{ steps.vars.outputs.version }} new -e ${ENVIRONMENT_NAME}
+
+      - name: Comment with rollback message
+        if: success() && steps.current_version.outputs.has_value == 'true'
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          body: |
+            The version `${{ steps.vars.outputs.version }}` was deployed to production environment.
+
+            To rollback this deployment comment the following text on this PR.
+
+            ```
+            /rollback prod ${{ steps.current_version.outputs.value }}
+            ```
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: simpleactions/create-deployment-status@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          state: success
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          environment: production
+          environment_url: ${{ steps.vars.outputs.target_url }}
+          auto_inactive: true
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: simpleactions/create-deployment-status@v1.0.0
+        with:
+          github_token: ${{${{inputs.STRUXHUB_GPR_TOKEN}}}}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          state: failure
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
