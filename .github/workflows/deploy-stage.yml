@@ -6,6 +6,15 @@ on:
       appName:
         required: true
         type: string
+      domain:
+        required: true
+        type: string
+      clusterName:
+        required: true
+        type: string
+      projectName:
+        required: true
+        type: string
     secrets:
       STRUXHUB_GPR_USER:
         required: true
@@ -46,7 +55,7 @@ jobs:
           echo "::set-output name=namespace::stage"
           echo "::set-output name=environment::stage"
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
-          echo "::set-output name=target_url::https://stage.struxhub.com"
+          echo "::set-output name=target_url::https://${{inputs.domain}}"
 
       - name: Create Pre Release
         uses: actions/create-release@latest
@@ -88,7 +97,7 @@ jobs:
 
       - name: Configure Kubernetes
         run: |
-          gcloud container clusters get-credentials struxhub-app --zone us-central1-a --project struxhub-app
+          gcloud container clusters get-credentials ${{inputs.clusterName}} --zone us-central1-a --project ${{inputs.projectName}}
           kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
 
       #
