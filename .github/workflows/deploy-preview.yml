@@ -15,6 +15,14 @@ on:
       projectName:
         required: true
         type: string
+      namespace:
+        required: false
+        type: string
+        default: 'dev'
+      environment:
+        required: false
+        type: string
+        default: 'dev'
     secrets:
       STRUXHUB_GPR_USER:
         required: true
@@ -49,8 +57,8 @@ jobs:
           export PREVIEW_ENV=${PREVIEW_ENV:0:30}
           echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-dev-version )"
           echo "::set-output name=app::${{inputs.appName}}"
-          echo "::set-output name=namespace::dev"
-          echo "::set-output name=environment::dev"
+          echo "::set-output name=namespace::${{inputs.namespace}}"
+          echo "::set-output name=environment::${{inputs.environment}}"
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
           echo "::set-output name=commit_id::${GITHUB_SHA:0:8}"
           echo "::set-output name=preview_env::$PREVIEW_ENV"
