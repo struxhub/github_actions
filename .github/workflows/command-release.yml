@@ -2,6 +2,10 @@ name: Release
 
 on:
   workflow_call:
+    inputs: 
+      appName:
+        required: true
+        type: string
     secrets:
       STRUXHUB_GPR_TOKEN:
         required: true
