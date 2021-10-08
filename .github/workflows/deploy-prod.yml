@@ -170,7 +170,7 @@ jobs:
             To rollback this deployment comment the following text on this PR.
 
             ```
-            /rollback prod ${{ steps.current_version.outputs.value }}
+            /rollback "${{steps.vars.outputs.namespace}}" ${{ steps.vars.outputs.environment }} ${{ steps.current_version.outputs.value }}
             ```
 
       - name: Update deployment status (success)
