@@ -34,7 +34,7 @@ jobs:
           echo "::set-output name=version::$(echo ${{ github.event.comment.body }}     | sed -rn 's/^\/rollback (admin-dev|dev|qa|stage|prod) (dev|qa|stage|prod) ([0-9]+\.[0-9]+\.[0-9]+(-[a-z]+\.[0-9]+)?)$/\3/p')"
       
       - name: Display variables
-        id: vars
+        id: displayVars
         run: |
           echo "${{steps.vars.outputs.appName}}"
           echo "${{steps.vars.outputs.namespace}}"
