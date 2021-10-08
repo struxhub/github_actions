@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  workflow_call:
+    secrets:
+      STRUXHUB_GPR_TOKEN:
+        required: true
+
+jobs:
+  release:
+    if: github.event.comment.body == '/release'
+    name: Merge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Fetch repository history
+        run: |
+          git fetch
+
+      - name: Get Pull Request Data
+        id: pr
+        uses: simpleactions/get-pull-request@v1.0.0
+        with:
+          github_token: ${{inputs.STRUXHUB_GPR_TOKEN}}
+          pull_number: ${{ github.event.issue.number }}
+
+      - name: Set Variables for this Workflow
+        id: vars
+        run: |
+          echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 latest-version )"
+
+      - name: Create Pre Release
+        if: github.event.pull_request.base.ref == 'develop'
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ inputs.STRUXHUB_GPR_TOKEN }}
+        with:
+          tag_name: v${{ steps.vars.outputs.version }}
+          release_name: Release ${{ steps.vars.outputs.version }}
+          body: |
+            Automated version for v${{ steps.vars.outputs.version }}
+          draft: false
+          prerelease: true
+
+      - name: Create Release
+        if: github.event.pull_request.base.ref == 'master'
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ inputs.STRUXHUB_GPR_TOKEN }}
+        with:
+          tag_name: v${{ steps.vars.outputs.version }}
+          release_name: Release ${{ steps.vars.outputs.version }}
+          body: |
+            Automated version for v${{ steps.vars.outputs.version }}
+          draft: false
+          prerelease: false

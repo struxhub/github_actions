@@ -1,0 +1,38 @@
+name: Show Help
+
+on:
+  workflow_call:
+    secrets:
+      STRUXHUB_GPR_TOKEN:
+        required: true
+
+jobs:
+  help:
+    if: github.event.comment.body == '/help'
+    name: Show Help
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show command help
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{inputs.STRUXHUB_GPR_TOKEN}}
+          issue_number: ${{ github.event.issue.number }}
+          body: |
+            ```
+            Available commands:
+
+            /merge
+              merge this pull request using fast fast-forward
+
+            /rebase
+              rebase this pull request target (base) into its origin (head)
+
+            /sync
+              reapplies commits from base branch (PR's target) to the source branch (your PR branch) tip then forcibly pushes updated base branch head.
+
+            /rollback <env> <version>
+              rollback <env> environment to <version> version
+
+            /release
+              release new packages version
+            ```

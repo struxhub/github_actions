@@ -1,0 +1,54 @@
+name: Merge
+
+on:
+  workflow_call:
+    secrets:
+      STRUXHUB_GPR_TOKEN:
+        required: true
+
+jobs:
+  merge:
+    if: github.event.comment.body == '/merge'
+    name: Merge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          token: ${{ inputs.STRUXHUB_GPR_TOKEN }}
+          fetch-depth: 0
+
+      - name: Fetch repository history
+        run: |
+          git fetch
+          git pull --tags
+
+      - name: Get Pull Request Data
+        id: pr
+        uses: simpleactions/get-pull-request@v1.0.0
+        with:
+          github_token: ${{inputs.STRUXHUB_GPR_TOKEN}}
+          pull_number: ${{ github.event.issue.number }}
+
+      - name: Merge this PR using fast-forward
+        run: |
+          git config user.name struxhub-bot
+          git config user.email admin@struxhub.com
+
+          git checkout ${{ steps.pr.outputs.head_ref }}
+          git checkout ${{ steps.pr.outputs.base_ref }}
+
+          git merge --ff-only ${{ steps.pr.outputs.head_ref }}
+
+          git push origin ${{ steps.pr.outputs.base_ref }}
+
+      - name: Add merge comment (failure)
+        if: failure()
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{inputs.STRUXHUB_GPR_TOKEN}}
+          issue_number: ${{ github.event.issue.number }}
+          body: |
+            Merge failed.
+
+            Please rebase ${{ steps.pr.outputs.base_ref }} into ${{ steps.pr.outputs.head_ref }}
