@@ -53,20 +53,27 @@ jobs:
 
 
 
-      - if: ${{ steps.vars.outputs.environment }} == 'dev' || ${{ steps.vars.outputs.environment }} == 'qa')
-        name: Configure Kubernetes
-        run: |
-          gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
-          kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
+      # - if: ${{ steps.vars.outputs.environment }} == 'dev' || ${{ steps.vars.outputs.environment }} == 'qa')
+      #   name: Configure Kubernetes
+      #   run: |
+      #     gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
+      #     kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
       
-      - if: ${{ steps.vars.outputs.environment }} == 'stage' || ${{ steps.vars.outputs.environment }} == 'prod')
-        name: Configure Kubernetes
+      # - if: ${{ steps.vars.outputs.environment }} == 'stage' || ${{ steps.vars.outputs.environment }} == 'prod')
+      #   name: Configure Kubernetes
+      #   run: |
+      #     gcloud container clusters get-credentials struxhub-app --zone us-central1-a --project struxhub-app
+      #     kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
+
+      - name: Configure Kubernetes
         run: |
-          gcloud container clusters get-credentials struxhub-app --zone us-central1-a --project struxhub-app
-          kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
-
-
-
+          if ((${{ steps.vars.outputs.environment }} == 'dev')) || ((${{ steps.vars.outputs.environment }} == 'qa')); then
+            gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
+            kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
+          else
+            gcloud container clusters get-credentials struxhub-app --zone us-central1-a --project struxhub-app
+            kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
+          fi
 
       - name: Get Current Deployed Version
         id: current_version
