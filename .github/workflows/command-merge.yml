@@ -14,6 +14,7 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
+        ref: ${{ env.GITHUB_REF }}
         with:
           token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
           fetch-depth: 0
