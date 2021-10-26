@@ -49,9 +49,40 @@ jobs:
         run: |
           git fetch
 
-      #
-      # TODO Change here the variables needed for this application
-      #
+      # Install Node.js environment
+      - name: set up node
+            uses: actions/setup-node@v1
+            with:
+                node-version: '12.x'
+
+      # Install newman
+      - name: Install newman
+        run: | 
+        npm install -g newman
+        npm install -g newman-reporter-htmlextra
+
+      - name: Make Directory for results
+        run: mkdir -p testResults
+
+      # - name: Run API Tests
+      #   id: run-newman
+      #   uses: anthonyvscode/newman-action@v1
+      #   with:
+      #     collection: http://example.com/collection.json
+      #     reporters: cli
+      - name: Run POSTMAN collection
+            run: |
+            newman run ./tests/pokemon-api-collection.json -e ./tests/pokemonapi-env.json -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/runreport1.html
+
+      - name: Output summary to console
+        run: echo ${{ steps.run-newman.outputs.summary }}
+
+      - name: Output the run Details
+        uses: actions/upload-artifact@v2
+        with: 
+        name: RunReports
+        path: testResults
+
       - name: Set Variables for this Workflow
         id: vars
         run: |

@@ -47,9 +47,6 @@ jobs:
         run: |
           git fetch
 
-      #
-      # TODO Change here the variables needed for this application
-      #
       - name: Set Variables for this Workflow
         id: vars
         run: |
