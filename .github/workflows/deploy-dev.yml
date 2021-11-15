@@ -23,6 +23,15 @@ on:
         required: false
         type: string
         default: 'dev'
+      postmanCollectionFile:
+        required: false
+        type: string
+        default: ''
+      postmanEnvironmentFile:
+        required: false
+        type: string
+        default: ''
+
     secrets:
       STRUXHUB_GPR_USER:
         required: true
@@ -64,20 +73,27 @@ jobs:
       - name: Make Directory for results
         run: mkdir -p testResults
 
-      # - name: Run API Tests
-      #   id: run-newman
-      #   uses: anthonyvscode/newman-action@v1
-      #   with:
-      #     collection: http://example.com/collection.json
-      #     reporters: cli
+      - name: Set current date as env variable
+        run: echo "NOW::$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+
+      - name: Checkout Postman Repo
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        uses: actions/checkout@v2
+        with:
+          repository: struxhub/Postman
+          path: postman
+
       - name: Run POSTMAN collection
-            run: |
-            newman run ./tests/pokemon-api-collection.json -e ./tests/pokemonapi-env.json -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/runreport1.html
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        run: |
+        newman run ./postman/{{inputs.postmanCollectionFile}} -e ./postman/{{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/postmanReport${NOW}.html
 
       - name: Output summary to console
+        if: ${{ inputs.postmanCollectionFile != '' }}
         run: echo ${{ steps.run-newman.outputs.summary }}
 
       - name: Output the run Details
+        if: ${{ inputs.postmanCollectionFile != '' }}
         uses: actions/upload-artifact@v2
         with: 
         name: RunReports
