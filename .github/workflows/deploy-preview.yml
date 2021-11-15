@@ -89,7 +89,7 @@ jobs:
       - name: Run POSTMAN collection
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
-          newman run ./postman/{{inputs.postmanCollectionFile}} -e ./postman/{{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/postmanReport${{ steps.date.outputs.date }}.html
+          newman run ./postman/${{inputs.postmanCollectionFile}} -e ./postman/${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/postmanReport${{ steps.date.outputs.date }}.html
 
       - name: Output summary to console
         if: ${{ inputs.postmanCollectionFile != '' }}
