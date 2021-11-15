@@ -83,7 +83,6 @@ jobs:
           repository: struxhub/Postman
           path: postman
           token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
-          ref: master
 
       - name: Make Directory for results
         if: ${{ inputs.postmanCollectionFile != '' }}
