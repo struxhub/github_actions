@@ -71,6 +71,7 @@ jobs:
           npm install -g newman-reporter-htmlextra
 
       - name: Set current date as env variable
+        id: date
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: echo "::set-output name=NOW::$(date +'%Y-%m-%dT%H:%M:%S')"
 
@@ -87,7 +88,7 @@ jobs:
         run: |
           cd postman
           mkdir testResults
-          newman run ./${{inputs.postmanCollectionFile}} -e ./${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.date }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.date }}.html
+          newman run ./${{inputs.postmanCollectionFile}} -e ./${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
 
       - name: Output summary to console
         if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
