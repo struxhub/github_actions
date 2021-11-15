@@ -94,7 +94,7 @@ jobs:
       - name: Set current date as env variable
         id: date
         if: ${{ inputs.postmanCollectionFile != '' }}
-        run: echo "::set-output name=NOW::$(date +'%YY%mm%ddHH%MM%SS')"
+        run: echo "::set-output name=NOW::$(date +'%Y%m%dH%M%S')"
 
       - name: Checkout Postman Repo
         if: ${{ inputs.postmanCollectionFile != '' }}
@@ -104,7 +104,7 @@ jobs:
           path: postman
           token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
 
-      - name: Run POSTMAN collection
+      - name: Run POSTMAN collection (see Summary for output)
         id: run-newman
         shell: bash
         if: ${{ inputs.postmanCollectionFile != '' }}
