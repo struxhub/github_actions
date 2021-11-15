@@ -56,6 +56,27 @@ jobs:
         run: |
           git fetch
 
+      - name: Set Variables for this Workflow
+        id: vars
+        run: |
+          export PREVIEW_ENV=pr-$(echo ${GITHUB_HEAD_REF##*/} | sed "s/[^[:alpha:][:digit:]]/-/g" | tr '[:upper:]' '[:lower:]')
+          export PREVIEW_ENV=${PREVIEW_ENV:0:30}
+          echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-dev-version )"
+          echo "::set-output name=app::${{inputs.appName}}"
+          echo "::set-output name=namespace::${{inputs.namespace}}"
+          echo "::set-output name=environment::${{inputs.environment}}"
+          echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
+          echo "::set-output name=commit_id::${GITHUB_SHA:0:8}"
+          echo "::set-output name=preview_env::$PREVIEW_ENV"
+          echo "::set-output name=target_url::https://$PREVIEW_ENV.${{inputs.domain}}"
+
+      - name: Get Last GitHub deployment
+        uses: simpleactions/get-last-deployment@v1.0.0
+        id: deployment
+        with:
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
+          environment: ${{ steps.vars.outputs.preview_env }}
+
       # Install Node.js environment
       - name: Install Node
         if: ${{ inputs.postmanCollectionFile != '' }}
@@ -97,27 +118,6 @@ jobs:
         with: 
           name: RunReports
           path: testResults
-
-      - name: Set Variables for this Workflow
-        id: vars
-        run: |
-          export PREVIEW_ENV=pr-$(echo ${GITHUB_HEAD_REF##*/} | sed "s/[^[:alpha:][:digit:]]/-/g" | tr '[:upper:]' '[:lower:]')
-          export PREVIEW_ENV=${PREVIEW_ENV:0:30}
-          echo "::set-output name=version::$( pwsh ./.github/version-tool.ps1 next-dev-version )"
-          echo "::set-output name=app::${{inputs.appName}}"
-          echo "::set-output name=namespace::${{inputs.namespace}}"
-          echo "::set-output name=environment::${{inputs.environment}}"
-          echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
-          echo "::set-output name=commit_id::${GITHUB_SHA:0:8}"
-          echo "::set-output name=preview_env::$PREVIEW_ENV"
-          echo "::set-output name=target_url::https://$PREVIEW_ENV.${{inputs.domain}}"
-
-      - name: Get Last GitHub deployment
-        uses: simpleactions/get-last-deployment@v1.0.0
-        id: deployment
-        with:
-          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
-          environment: ${{ steps.vars.outputs.preview_env }}
 
       - name: Update deployment status (pending)
         uses: simpleactions/create-deployment-status@v1.0.0
