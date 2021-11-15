@@ -58,15 +58,15 @@ jobs:
 
       # Install Node.js environment
       - name: set up node
-            uses: actions/setup-node@v1
-            with:
-                node-version: '12.x'
+        uses: actions/setup-node@v1
+        with:
+            node-version: '12.x'
 
       # Install newman
       - name: Install newman
         run: | 
-        npm install -g newman
-        npm install -g newman-reporter-htmlextra
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
 
       - name: Make Directory for results
         run: mkdir -p testResults
@@ -84,7 +84,7 @@ jobs:
       - name: Run POSTMAN collection
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
-        newman run ./postman/{{inputs.postmanCollectionFile}} -e ./postman/{{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/postmanReport${NOW}.html
+          newman run ./postman/{{inputs.postmanCollectionFile}} -e ./postman/{{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/postmanReport${NOW}.html
 
       - name: Output summary to console
         if: ${{ inputs.postmanCollectionFile != '' }}
@@ -94,8 +94,8 @@ jobs:
         if: ${{ inputs.postmanCollectionFile != '' }}
         uses: actions/upload-artifact@v2
         with: 
-        name: RunReports
-        path: testResults
+          name: RunReports
+          path: testResults
 
 
       - name: Set Variables for this Workflow
