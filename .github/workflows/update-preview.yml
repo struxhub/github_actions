@@ -91,10 +91,6 @@ jobs:
           mkdir testResults
           newman run ./postman/${{inputs.postmanCollectionFile}} -e ./postman/${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
 
-      - name: Output summary to console
-        if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
-        run: echo ${{ steps.run-newman.outputs.summary }}
-        
       - name: Output the run Details
         if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
         uses: actions/upload-artifact@v2
