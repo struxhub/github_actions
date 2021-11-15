@@ -73,7 +73,7 @@ jobs:
       - name: Set current date as env variable
         id: date
         if: ${{ inputs.postmanCollectionFile != '' }}
-        run: echo "::set-output name=NOW::$(date +'%Y-%m-%dT%H:%M:%S')"
+        run: echo "::set-output name=NOW::$(date +'%YY%mm%ddHH%MM%SS')"
 
       - name: Checkout Postman Repo
         if: ${{ inputs.postmanCollectionFile != '' }}
