@@ -89,7 +89,7 @@ jobs:
         run: |
           cd postman
           mkdir testResults
-          newman run ./${{inputs.postmanCollectionFile}} -e ./${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
+          newman run ./${{inputs.postmanCollectionFile}} -e ./${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme --bail ['failure'] > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
 
       - name: Output summary to console
         if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
