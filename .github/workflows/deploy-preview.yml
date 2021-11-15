@@ -75,7 +75,7 @@ jobs:
 
       - name: Set current date as env variable
         if: ${{ inputs.postmanCollectionFile != '' }}
-        run: echo "NOW::$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+        run: echo "::set-output name=NOW::$(date +'%Y-%m-%dT%H:%M:%S')"
 
       - name: Checkout Postman Repo
         if: ${{ inputs.postmanCollectionFile != '' }}
@@ -87,7 +87,7 @@ jobs:
       - name: Run POSTMAN collection
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
-          newman run ./postman/{{inputs.postmanCollectionFile}} -e ./postman/{{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/postmanReport${NOW}.html
+          newman run ./postman/{{inputs.postmanCollectionFile}} -e ./postman/{{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme  > testResults/postmanReport${{ steps.date.outputs.date }}.html
 
       - name: Output summary to console
         if: ${{ inputs.postmanCollectionFile != '' }}
