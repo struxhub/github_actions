@@ -83,6 +83,7 @@ jobs:
         with:
           repository: struxhub/Postman
           path: postman
+          ref: master
 
       - name: Run POSTMAN collection
         if: ${{ inputs.postmanCollectionFile != '' }}
