@@ -88,9 +88,8 @@ jobs:
         shell: bash
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
-          cd postman
           mkdir testResults
-          newman run ./${{inputs.postmanCollectionFile}} -e ./${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme -x > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
+          newman run ./postman/${{inputs.postmanCollectionFile}} -e ./postman/${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme -x > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
 
       - name: Output the run Details
         if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
