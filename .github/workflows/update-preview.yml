@@ -84,6 +84,7 @@ jobs:
         with:
           repository: struxhub/Postman
           path: postman
+          token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
           ref: master
 
       - name: Run POSTMAN collection
