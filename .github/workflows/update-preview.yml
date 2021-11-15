@@ -84,6 +84,7 @@ jobs:
           token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
 
       - name: Run POSTMAN collection
+        id: run-newman
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
           cd postman
