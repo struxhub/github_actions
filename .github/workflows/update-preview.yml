@@ -58,20 +58,24 @@ jobs:
 
       # Install Node.js environment
       - name: set up node
+        if: ${{ inputs.postmanCollectionFile != '' }}
         uses: actions/setup-node@v1
         with:
           node-version: '12.x'
 
       # Install newman
       - name: Install newman
+        if: ${{ inputs.postmanCollectionFile != '' }}
         run: | 
           npm install -g newman
           npm install -g newman-reporter-htmlextra
 
       - name: Make Directory for results
+        if: ${{ inputs.postmanCollectionFile != '' }}
         run: mkdir -p testResults
 
       - name: Set current date as env variable
+        if: ${{ inputs.postmanCollectionFile != '' }}
         run: echo "NOW::$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
 
       - name: Checkout Postman Repo
@@ -96,7 +100,6 @@ jobs:
         with: 
           name: RunReports
           path: testResults
-
 
       - name: Set Variables for this Workflow
         id: vars
