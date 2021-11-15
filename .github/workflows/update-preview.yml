@@ -85,15 +85,12 @@ jobs:
 
       - name: Run POSTMAN collection
         id: run-newman
+        shell: bash
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
           cd postman
           mkdir testResults
           newman run ./${{inputs.postmanCollectionFile}} -e ./${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme --bail ['failure'] > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
-
-      - name: Output summary to console
-        if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
-        run: echo ${{ steps.run-newman.outputs.summary }}
 
       - name: Output the run Details
         if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
