@@ -62,7 +62,7 @@ jobs:
       - name: set up node
         uses: actions/setup-node@v1
         with:
-            node-version: '12.x'
+          node-version: '12.x'
 
       # Install newman
       - name: Install newman
