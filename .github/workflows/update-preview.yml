@@ -110,12 +110,12 @@ jobs:
           mkdir testResults
           newman run ./postman/${{inputs.postmanCollectionFile}} -e ./postman/${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
 
-      - name: Output the run Details # newman
-        if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
-        uses: actions/upload-artifact@v2
-        with: 
-          name: RunReports
-          path: testResults
+      # - name: Output the run Details # newman
+      #   if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
+      #   uses: actions/upload-artifact@v2
+      #   with: 
+      #     name: RunReports
+      #     path: testResults
 
       - id: auth-to-storage
         if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
