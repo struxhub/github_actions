@@ -127,7 +127,7 @@ jobs:
         if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
         uses: google-github-actions/upload-cloud-storage@v0.4.0
         with:
-          path: /testResults
+          path: testResults
           destination: postman-test-results
 
       - name: Update deployment status (pending)
