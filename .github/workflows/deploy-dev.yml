@@ -23,6 +23,15 @@ on:
         required: false
         type: string
         default: 'dev'
+      postmanCollectionFile:
+        required: false
+        type: string
+        default: ''
+      postmanEnvironmentFile:
+        required: false
+        type: string
+        default: ''
+
     secrets:
       STRUXHUB_GPR_USER:
         required: true
@@ -49,9 +58,6 @@ jobs:
         run: |
           git fetch
 
-      #
-      # TODO Change here the variables needed for this application
-      #
       - name: Set Variables for this Workflow
         id: vars
         run: |
@@ -61,6 +67,54 @@ jobs:
           echo "::set-output name=environment::${{inputs.environment}}"
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
           echo "::set-output name=target_url::https://${{inputs.domain}}"
+
+      - name: Create GitHub deployment
+        uses: simpleactions/create-deployment@v1.0.0
+        id: deployment
+        with:
+          github_token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
+          environment: ${{ steps.vars.outputs.environment }}
+          ref: ${{ steps.tag.outputs.ref }}
+
+      - name: Install Node # newman
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      - name: Install newman # newman
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        run: | 
+          npm install -g newman@^5.1.2
+          npm install -g newman-reporter-htmlextra
+
+      - name: Set current date as env variable # newman
+        id: date
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        run: echo "::set-output name=NOW::$(date +'%Y%m%dH%M%S')"
+
+      - name: Checkout Postman Repo # newman
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        uses: actions/checkout@v2
+        with:
+          repository: struxhub/Postman
+          path: postman
+          token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
+
+      - name: Run POSTMAN collection (see Summary for output) # newman
+        id: run-newman
+        shell: bash
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        run: |
+          mkdir testResults
+          newman run ./postman/${{inputs.postmanCollectionFile}} -e ./postman/${{inputs.postmanEnvironmentFile}} -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
+
+      - name: Output the run Details # newman
+        if: ${{always()}} && ${{ inputs.postmanCollectionFile != '' }}
+        uses: actions/upload-artifact@v2
+        with: 
+          name: RunReports
+          path: testResults
 
       - name: Create Pre Release
         uses: actions/create-release@latest
@@ -73,14 +127,6 @@ jobs:
             Automated version for v${{ steps.vars.outputs.version }}
           draft: false
           prerelease: true
-
-      - name: Create GitHub deployment
-        uses: simpleactions/create-deployment@v1.0.0
-        id: deployment
-        with:
-          github_token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
-          environment: ${{ steps.vars.outputs.environment }}
-          ref: ${{ steps.tag.outputs.ref }}
 
       - name: Update deployment status (pending)
         uses: simpleactions/create-deployment-status@v1.0.0
