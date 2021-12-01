@@ -117,6 +117,17 @@ jobs:
           name: RunReports
           path: testResults
 
+      - id: Auth to Storage
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - id: upload-files
+        uses: google-github-actions/upload-cloud-storage@v0.4.0
+        with:
+          path: /testResults
+          destination: postman-test-results
+
       - name: Update deployment status (pending)
         uses: simpleactions/create-deployment-status@v1.0.0
         with:
