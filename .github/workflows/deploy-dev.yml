@@ -239,4 +239,5 @@ jobs:
         with:
           github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
-            Test results are [here](https://storage.cloud.google.com/postman-test-results/testResults).
+            Test results are [here](https://console.cloud.google.com/storage/browser/postman-test-results/testResults;tab=objects?project=struxhub-app&prefix=&forceOnObjectsSortingFiltering=true).
+            Files: ${{steps.upload-files.outputs.uploaded}}
