@@ -144,6 +144,7 @@ jobs:
     name: Run Postman Endpoints Against Preview Environment
     if: github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
     runs-on: ubuntu-latest
+    steps:
       - name: Set Variables for this Workflow
         id: vars
         run: |
