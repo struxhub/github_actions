@@ -140,7 +140,7 @@ jobs:
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: failure
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-  test:
+  E2ETests:
     name: Run Postman Endpoints Against Preview Environment
     needs: deploy
     if: github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
