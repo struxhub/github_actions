@@ -199,3 +199,11 @@ jobs:
         with:
           path: testResults
           destination: postman-test-results
+
+      - name: Print test results uploaded
+        if: ${{always() && inputs.postmanCollectionFile != '' }}
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
+          body: |
+            Test results are [here](https://storage.cloud.google.com/postman-test-results/testResults).
