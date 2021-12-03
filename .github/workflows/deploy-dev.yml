@@ -234,14 +234,16 @@ jobs:
           destination: postman-test-results
       
       - uses: bluwy/substitute-string-action@v1
+        if: ${{always() && inputs.postmanCollectionFile != '' }}
         id: sub_string
         with:
           _input-text: '${{steps.upload-files.outputs.uploaded}}'
           gs://: 'https://storage.cloud.google.com/'
       
-      - name: Print coverage report uploaded
+      - name: Print test results uploaded
+        if: ${{always() && inputs.postmanCollectionFile != '' }}
         uses: simpleactions/create-issue-comment@v1.0.0
         with:
           github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
-            Coverage report uploaded [here](${{ steps.sub_string.outputs.result }}).
+            Test results are [here](${{ steps.sub_string.outputs.result }}).
