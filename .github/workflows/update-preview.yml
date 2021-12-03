@@ -142,6 +142,7 @@ jobs:
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
   test:
     name: Run Postman Endpoints Against Preview Environment
+    needs: deploy
     if: github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
     runs-on: ubuntu-latest
     steps:
