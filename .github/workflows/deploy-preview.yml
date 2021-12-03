@@ -177,6 +177,8 @@ jobs:
           github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
             A [preview environment](${{ steps.vars.outputs.target_url }}) created and will be removed when this PR closes!
+            - [ ] In case you are developing a new endpoint, did you update Postman?
+            - [ ] Did you write meaningful unit tests?
 
       - name: Update deployment status (success)
         if: success()
