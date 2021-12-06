@@ -202,13 +202,10 @@ jobs:
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: echo "::set-output name=NOW::$(date +'%Y%m%dH%M%S')"
 
-      - name: Checkout Postman Repo # newman
-        if: ${{ inputs.postmanCollectionFile != '' }}
+      - name: Checkout the repository
         uses: actions/checkout@v2
         with:
-          repository: struxhub/Postman
-          path: postman
-          token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
+          fetch-depth: 0
 
       - name: Run POSTMAN collection (see Summary for output) # newman
         id: run-newman
