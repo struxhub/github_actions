@@ -23,6 +23,10 @@ on:
         required: false
         type: string
         default: 'qa'
+      deployApp:
+        required: false
+        type: boolean
+        default: true
     secrets:
       STRUXHUB_GPR_USER:
         required: true
@@ -127,6 +131,7 @@ jobs:
           if [[ ! -z "$CURRENT_VERSION" ]]; then echo "::set-output name=has_value::true"; fi
 
       - name: Deploy App
+        if: inputs.deployApp
         run: |
           sed 's/ENVIRONMENT/${{ steps.vars.outputs.environment }}/g;s/VERSION/${{ steps.vars.outputs.version }}/g' deploy/app.yaml | kubectl apply -f -
 
