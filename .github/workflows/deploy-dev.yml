@@ -48,6 +48,11 @@ jobs:
     if: github.event.pull_request.merged
     name: Deploy the Development Environment
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2

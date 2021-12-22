@@ -45,6 +45,11 @@ jobs:
   deploy:
     name: Deploy to QA Environment
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
