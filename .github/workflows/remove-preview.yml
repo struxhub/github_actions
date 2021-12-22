@@ -44,9 +44,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      #
-      # TODO Change here the variables needed for this application
-      #
       - name: Set Variables for this Workflow
         id: vars
         run: |
@@ -66,11 +63,12 @@ jobs:
           github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           environment: ${{ steps.vars.outputs.preview_env }}
 
-      - name: Authenticate into Google Cloud Platform
-        uses: google-github-actions/setup-gcloud@master
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
         with:
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: 'projects/792156332528/locations/global/workloadIdentityPools/struxhub-identity-pool/providers/struxhub-identity-provider'
+          service_account: 'github@struxhub-app.iam.gserviceaccount.com'
 
       - name: Configure Kubernetes
         run: |
