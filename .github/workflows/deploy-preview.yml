@@ -45,6 +45,11 @@ jobs:
   deploy:
     name: Deploy the Preview Environment
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
