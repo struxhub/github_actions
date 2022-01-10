@@ -219,7 +219,10 @@ jobs:
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
           mkdir testResults
-          newman run ./postman/${{inputs.postmanCollectionFile}} -e ./postman/${{inputs.postmanEnvironmentFile}} --global-var "baseUrl=${{ steps.vars.outputs.target_url }}" -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
+          newman run ./postman/${{inputs.postmanCollectionFile}} \
+            -e ./postman/${{inputs.postmanEnvironmentFile}} \
+            --global-var "baseUrl=${{ steps.vars.outputs.target_url }}" \
+            -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html
           
       - name: Authorize GCP Cloud Storage
         if: ${{always() && inputs.postmanCollectionFile != '' }}
