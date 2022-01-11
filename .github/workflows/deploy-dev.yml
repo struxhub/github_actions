@@ -203,10 +203,10 @@ jobs:
           npm install -g newman@^5.1.2
           npm install -g newman-reporter-htmlextra
 
-      - name: Set current date as env variable # newman
+      - name: Set filename as env variable # newman
         id: date
         if: ${{ inputs.postmanCollectionFile != '' }}
-        run: echo "::set-output name=NOW::$(date +'%Y%m%dH%M%S')"
+        run: echo "::set-output name=postmanReportFileName::E2ETests-PR-${{ github.event.pull_request.number }}-$(date +'%Y%m%dH%M%S').html"
 
       - name: Checkout the repository
         uses: actions/checkout@v2
@@ -221,7 +221,7 @@ jobs:
           newman run ./postman/${{inputs.postmanCollectionFile}} \
             -e ./postman/${{inputs.postmanEnvironmentFile}} \
             --global-var "baseUrl=${{ steps.vars.outputs.target_url }}" \
-            -r htmlextra --reporter-htmlextra-export ./htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html
+            -r htmlextra --reporter-htmlextra-export ./${{ steps.date.outputs.postmanReportFileName }}
           
       - name: Authorize GCP Cloud Storage
         if: ${{always() && inputs.postmanCollectionFile != '' }}
@@ -236,7 +236,7 @@ jobs:
         id: upload-files
         uses: google-github-actions/upload-cloud-storage@v0.4.0
         with:
-          path: ./htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html
+          path: ./${{ steps.date.outputs.postmanReportFileName }}
           destination: postman-test-results
      
       - name: Print test results uploaded
@@ -245,5 +245,5 @@ jobs:
         with:
           github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
-            Postman Test results are [here](https://storage.cloud.google.com/postman-test-results/htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html).
-            File: htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html
+            Postman Test results are [here](https://storage.cloud.google.com/postman-test-results/${{ steps.date.outputs.postmanReportFileName }}).
+            File: ${{ steps.date.outputs.postmanReportFileName }}
