@@ -230,7 +230,8 @@ jobs:
         uses: google-github-actions/auth@v0.4.0
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
-
+      
+      #files are deleted from Cloud Storage after '10 days' they are uploaded
       - name: Save postman test results to GCP Cloud Storage
         if: ${{always() && inputs.postmanCollectionFile != '' }}
         id: upload-files
