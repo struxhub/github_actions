@@ -1,4 +1,4 @@
-name: Deploy to Stage Environment
+name: Stage
 
 on:
   workflow_call:
