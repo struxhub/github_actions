@@ -218,11 +218,10 @@ jobs:
         shell: bash
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
-          mkdir testResults
           newman run ./postman/${{inputs.postmanCollectionFile}} \
             -e ./postman/${{inputs.postmanEnvironmentFile}} \
             --global-var "baseUrl=${{ steps.vars.outputs.target_url }}" \
-            -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html
+            -r htmlextra --reporter-htmlextra-export ./htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html
           
       - name: Authorize GCP Cloud Storage
         if: ${{always() && inputs.postmanCollectionFile != '' }}
@@ -237,7 +236,7 @@ jobs:
         id: upload-files
         uses: google-github-actions/upload-cloud-storage@v0.4.0
         with:
-          path: testResults
+          path: /
           destination: postman-test-results
      
       - name: Print test results uploaded
@@ -246,5 +245,5 @@ jobs:
         with:
           github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
           body: |
-            Postman Test results are [here](https://storage.cloud.google.com/postman-test-results/testResults/htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html).
+            Postman Test results are [here](https://storage.cloud.google.com/postman-test-results/htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html).
             File: htmlreport-pr-${{ github.event.pull_request.number }}-${{ steps.date.outputs.NOW }}.html
