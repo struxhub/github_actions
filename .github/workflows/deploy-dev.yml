@@ -270,6 +270,11 @@ jobs:
       id-token: 'write'
 
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - name: Set Variables for this Workflow
         id: vars
         run: |
