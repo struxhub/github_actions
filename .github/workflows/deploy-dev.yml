@@ -292,11 +292,11 @@ jobs:
           body: |
             Rollback failed.
 
-            The image `gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ jobs.deploy.outputs.current_version }}` was not found.
+            The image `gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ needs.deploy.outputs.current_version }}` was not found.
 
       - name: Deploy App
         run: |
-          sed 's/ENVIRONMENT/${{ steps.vars.outputs.environment }}/g;s/VERSION/${{ jobs.deploy.outputs.current_version }}/g' deploy/app.yaml | kubectl apply -f -
+          sed 's/ENVIRONMENT/${{ steps.vars.outputs.environment }}/g;s/VERSION/${{ needs.deploy.outputs.current_version }}/g' deploy/app.yaml | kubectl apply -f -
 
       - name: Comment with success message
         if: success()
