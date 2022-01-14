@@ -281,7 +281,7 @@ jobs:
 
       - name: Check if image to Google Cloud Container Registry
         run: |
-          docker pull gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ jobs.deploy.outputs.current_version }}
+          docker pull gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ needs.deploy.outputs.current_version }}
 
       - name: Comment with error message
         if: failure()
