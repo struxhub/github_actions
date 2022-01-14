@@ -188,6 +188,9 @@ jobs:
     if: github.event.pull_request.merged
     runs-on: ubuntu-latest
 
+    outputs:
+      current_version: ${{needs.deploy.outputs.current_version}}
+
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -292,7 +295,7 @@ jobs:
 
       - name: Check if image exists
         run: |
-          docker pull gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ needs.deploy.outputs.current_version }}
+          docker pull gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ needs.E2ETests.outputs.current_version }}
 
       - name: Comment with error message
         if: failure()
@@ -303,11 +306,11 @@ jobs:
           body: |
             Rollback failed.
 
-            The image `gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ needs.deploy.outputs.current_version }}` was not found.
+            The image `gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ needs.E2ETests.outputs.current_version }}` was not found.
 
       - name: Deploy App
         run: |
-          sed 's/ENVIRONMENT/${{ steps.vars.outputs.environment }}/g;s/VERSION/${{ needs.deploy.outputs.current_version }}/g' deploy/app.yaml | kubectl apply -f -
+          sed 's/ENVIRONMENT/${{ steps.vars.outputs.environment }}/g;s/VERSION/${{ needs.E2ETests.outputs.current_version }}/g' deploy/app.yaml | kubectl apply -f -
 
       - name: Comment with success message
         if: success()
