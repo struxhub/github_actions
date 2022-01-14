@@ -187,6 +187,11 @@ jobs:
     needs: deploy
     if: github.event.pull_request.merged
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
       - name: Set Variables for this Workflow
         id: vars
@@ -256,6 +261,11 @@ jobs:
     needs: E2ETests
     if: failure()
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      
     steps:
       - name: Set Variables for this Workflow
         id: vars
