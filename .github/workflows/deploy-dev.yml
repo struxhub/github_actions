@@ -255,6 +255,7 @@ jobs:
     name: Rollback if failure on tests
     needs: E2ETests
     if: failure()
+    runs-on: ubuntu-latest
     steps:
       - name: Set Variables for this Workflow
         id: vars
