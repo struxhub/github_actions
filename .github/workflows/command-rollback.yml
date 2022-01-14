@@ -9,86 +9,11 @@ on:
     secrets:
       STRUXHUB_GPR_TOKEN:
         required: true
-      GCP_SA_EMAIL:
-        required: true
-      GCP_SA_KEY:
-        required: true
 
 jobs:
   rollback:
-    if: startsWith(github.event.comment.body, '/rollback')
-    name: Rollback
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Set Variables for this Workflow
-        id: vars
-        run: |
-          echo "::set-output name=app::${{inputs.appName}}"
-          echo "::set-output name=namespace::$(echo ${{ github.event.comment.body }}   | sed -rn 's/^\/rollback (admin-dev|dev|qa|stage|prod) (dev|qa|stage|prod) ([0-9]+\.[0-9]+\.[0-9]+(-[a-z]+\.[0-9]+)?)$/\1/p')"
-          echo "::set-output name=environment::$(echo ${{ github.event.comment.body }} | sed -rn 's/^\/rollback (admin-dev|dev|qa|stage|prod) (dev|qa|stage|prod) ([0-9]+\.[0-9]+\.[0-9]+(-[a-z]+\.[0-9]+)?)$/\2/p')"
-          echo "::set-output name=version::$(echo ${{ github.event.comment.body }}     | sed -rn 's/^\/rollback (admin-dev|dev|qa|stage|prod) (dev|qa|stage|prod) ([0-9]+\.[0-9]+\.[0-9]+(-[a-z]+\.[0-9]+)?)$/\3/p')"
-      
-      - name: Display variables
-        id: displayVars
-        run: |
-          echo "${{steps.vars.outputs.appName}}"
-          echo "${{steps.vars.outputs.namespace}}"
-          echo "${{steps.vars.outputs.environment}}"
-          echo "${{steps.vars.outputs.version}}"
-
-      - name: Authenticate into Google Cloud Platform
-        uses: google-github-actions/setup-gcloud@master
-        with:
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Configure Docker to use Google Cloud Platform
-        run: |
-          gcloud auth configure-docker --quiet
-
-      - name: Configure Kubernetes
-        run: |
-          if [ "${{ steps.vars.outputs.environment }}" == "dev" ] || [ "${{ steps.vars.outputs.environment }}" == "qa" ]; then
-            gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
-          else
-            gcloud container clusters get-credentials struxhub-app --zone us-central1-a --project struxhub-app
-          fi
-          kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
-
-      - name: Get Current Deployed Version
-        id: current_version
-        run: |
-          echo "::set-output name=value::$(kubectl get app/${{ steps.vars.outputs.app }} -o jsonpath='{.spec.image}' | sed -rn 's/^[^:]+:(.+)$/\1/p')"
-
-      - name: Check if image to Google Cloud Container Registry
-        run: |
-          docker pull gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.version }}
-
-      - name: Comment with error message
-        if: failure()
-        uses: simpleactions/create-issue-comment@v1.0.0
-        with:
-          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
-          issue_number: ${{ github.event.issue.number }}
-          body: |
-            Rollback failed.
-
-            The image `gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ steps.vars.outputs.version }}` was not found.
-
-      - name: Deploy App
-        run: |
-          sed 's/ENVIRONMENT/${{ steps.vars.outputs.environment }}/g;s/VERSION/${{ steps.vars.outputs.version }}/g' deploy/app.yaml | kubectl apply -f -
-
-      - name: Comment with success message
-        if: success()
-        uses: simpleactions/create-issue-comment@v1.0.0
-        with:
-          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
-          issue_number: ${{ github.event.issue.number }}
-          body: |
-            Rollback success.
+    uses: struxhub/github_actions/.github/workflows/rollback.yml@main
+    with:
+      appName: ${{ inputs.appName }}
+    secrets:
+      STRUXHUB_GPR_TOKEN: ${{ secrets.STRUXHUB_GPR_TOKEN }}
