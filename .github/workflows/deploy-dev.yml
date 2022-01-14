@@ -252,7 +252,7 @@ jobs:
             File: ${{ steps.date.outputs.postmanReportFileName }}
     
   Rollback:
-    name: Rollback if failure on tests
+    name: Rollback if tests failed
     needs: E2ETests
     if: failure()
     runs-on: ubuntu-latest
