@@ -258,7 +258,7 @@ jobs:
     
   Rollback:
     name: Rollback if tests failed
-    needs: deploy
+    needs: E2ETests
     if: failure()
     runs-on: ubuntu-latest
 
