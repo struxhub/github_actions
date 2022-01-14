@@ -258,14 +258,14 @@ jobs:
     
   Rollback:
     name: Rollback if tests failed
-    needs: E2ETests
+    needs: deploy
     if: failure()
     runs-on: ubuntu-latest
 
     permissions:
       contents: 'read'
       id-token: 'write'
-      
+
     steps:
       - name: Set Variables for this Workflow
         id: vars
@@ -290,7 +290,7 @@ jobs:
           gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
           kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
 
-      - name: Check if image to Google Cloud Container Registry
+      - name: Check if image exists
         run: |
           docker pull gcr.io/struxhub-app/${{ steps.vars.outputs.app }}:${{ needs.deploy.outputs.current_version }}
 
