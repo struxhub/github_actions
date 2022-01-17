@@ -55,6 +55,7 @@ jobs:
       
     outputs:
       current_version: ${{steps.current_version.outputs.value}}
+
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
@@ -75,14 +76,6 @@ jobs:
           echo "::set-output name=unique_id::pr-${{ github.event.pull_request.number }}"
           echo "::set-output name=target_url::https://${{inputs.domain}}"
 
-      - name: Create GitHub deployment
-        uses: simpleactions/create-deployment@v1.0.0
-        id: deployment
-        with:
-          github_token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
-          environment: ${{ steps.vars.outputs.environment }}
-          ref: ${{ steps.tag.outputs.ref }}
-
       - name: Create Pre Release
         uses: actions/create-release@latest
         env:
@@ -94,6 +87,14 @@ jobs:
             Automated version for v${{ steps.vars.outputs.version }}
           draft: false
           prerelease: true
+
+      - name: Create GitHub deployment
+        uses: simpleactions/create-deployment@v1.0.0
+        id: deployment
+        with:
+          github_token: ${{ secrets.STRUXHUB_GPR_TOKEN }}
+          environment: ${{ steps.vars.outputs.environment }}
+          ref: ${{ steps.tag.outputs.ref }}
 
       - name: Update deployment status (pending)
         uses: simpleactions/create-deployment-status@v1.0.0
@@ -182,6 +183,7 @@ jobs:
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: failure
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
   E2ETests:
     name: E2ETests
     needs: deploy
@@ -258,7 +260,7 @@ jobs:
           body: |
             Postman Test results are [here](https://storage.cloud.google.com/postman-test-results/${{ steps.date.outputs.postmanReportFileName }}).
             File: ${{ steps.date.outputs.postmanReportFileName }}
-    
+
   Rollback:
     name: Rollback if tests failed
     needs: E2ETests
@@ -295,7 +297,7 @@ jobs:
 
       - name: Configure Kubernetes
         run: |
-          gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
+          gcloud container clusters get-credentials ${{inputs.clusterName}} --zone us-central1-a --project ${{inputs.projectName}}
           kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
 
       - name: Check if image exists
