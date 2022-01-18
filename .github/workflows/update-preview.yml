@@ -46,6 +46,11 @@ jobs:
     name: Deploy the Preview Environment
     if: github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
