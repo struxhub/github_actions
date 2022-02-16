@@ -230,7 +230,7 @@ jobs:
         shell: bash
         if: ${{ inputs.postmanCollectionFile != '' }}
         run: |
-          newman run ./postman/${{inputs.postmanCollectionFile}} \
+          newman run --timeout-request 1800000 ./postman/${{inputs.postmanCollectionFile}} \
             -e ./postman/${{inputs.postmanEnvironmentFile}} \
             --global-var "baseUrl=${{ steps.vars.outputs.target_url }}" \
             -r htmlextra --reporter-htmlextra-export ./${{ steps.date.outputs.postmanReportFileName }}
