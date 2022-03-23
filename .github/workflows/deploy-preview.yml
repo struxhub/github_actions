@@ -36,10 +36,6 @@ on:
         required: true
       STRUXHUB_GPR_TOKEN:
         required: true
-      GCP_SA_EMAIL:
-        required: true
-      GCP_SA_KEY:
-        required: true
 
 jobs:
   deploy:

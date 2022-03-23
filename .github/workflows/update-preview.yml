@@ -36,10 +36,6 @@ on:
         required: true
       STRUXHUB_GPR_TOKEN:
         required: true
-      GCP_SA_EMAIL:
-        required: true
-      GCP_SA_KEY:
-        required: true
 
 jobs:
   deploy:
@@ -188,12 +184,13 @@ jobs:
           mkdir testResults
           newman run ./postman/${{inputs.postmanCollectionFile}} -e ./postman/${{inputs.postmanEnvironmentFile}} --global-var "baseUrl=${{ steps.vars.outputs.target_url }}" -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
           
-      - name: Authorize GCP Cloud Storage
+      - id: 'auth'
         if: ${{always() && inputs.postmanCollectionFile != '' }}
-        id: auth-to-storage
-        uses: google-github-actions/auth@v0.4.0
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: 'projects/792156332528/locations/global/workloadIdentityPools/struxhub-identity-pool/providers/struxhub-identity-provider'
+          service_account: 'github@struxhub-app.iam.gserviceaccount.com'
 
       - name: Save postman test results to GCP Cloud Storage
         if: ${{always() && inputs.postmanCollectionFile != '' }}

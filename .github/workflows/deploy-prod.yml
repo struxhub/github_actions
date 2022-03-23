@@ -32,10 +32,6 @@ on:
         required: true
       SENTRY_ORG:
         required: true
-      GCP_SA_EMAIL:
-        required: true
-      GCP_SA_KEY:
-        required: true
 
 jobs:
   deploy:
