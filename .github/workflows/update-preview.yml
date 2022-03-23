@@ -90,11 +90,6 @@ jobs:
           state: pending
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-      # - name: Authenticate into Google Cloud Platform
-      #   uses: google-github-actions/setup-gcloud@master
-      #   with:
-      #     service_account_email: ${{ secrets.GCP_SA_EMAIL }}
-      #     service_account_key: ${{ secrets.GCP_SA_KEY }}
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v0'
