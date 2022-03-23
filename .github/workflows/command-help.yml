@@ -24,12 +24,6 @@ jobs:
             /merge
               merge this pull request using fast fast-forward
 
-            /rebase
-              rebase this pull request target (base) into its origin (head)
-
-            /sync
-              reapplies commits from base branch (PR's target) to the source branch (your PR branch) tip then forcibly pushes updated base branch head.
-
             /rollback <env> <version>
               rollback <env> environment to <version> version
 
