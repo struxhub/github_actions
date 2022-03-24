@@ -147,6 +147,11 @@ jobs:
     needs: deploy
     if: github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      
     steps:
       - name: Set Variables for this Workflow
         id: vars
