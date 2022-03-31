@@ -15,6 +15,11 @@ jobs:
     if: startsWith(github.event.comment.body, '/rollback')
     name: Rollback
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
