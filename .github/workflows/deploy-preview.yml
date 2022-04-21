@@ -146,3 +146,74 @@ jobs:
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           state: failure
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  E2ETests:
+    name: Run Postman Endpoints Against Preview Environment
+    needs: deploy
+    if: github.event.action != 'closed' && contains(github.event.pull_request.labels.*.name, 'DeployPreviewEnv')
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      
+    steps:
+      - name: Set Variables for this Workflow
+        id: vars
+        run: |
+          export PREVIEW_ENV=pr-$(echo ${GITHUB_HEAD_REF##*/} | sed "s/[^[:alpha:][:digit:]]/-/g" | tr '[:upper:]' '[:lower:]')
+          echo "::set-output name=target_url::https://$PREVIEW_ENV.${{inputs.domain}}"
+          
+      - name: Install Node # newman
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      - name: Install newman # newman
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        run: | 
+          npm install -g newman@^5.1.2
+          npm install -g newman-reporter-htmlextra
+
+      - name: Set current date as env variable # newman
+        id: date
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        run: echo "::set-output name=NOW::$(date +'%Y%m%dH%M%S')"
+
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Run POSTMAN collection (see Summary for output) # newman
+        id: run-newman
+        shell: bash
+        if: ${{ inputs.postmanCollectionFile != '' }}
+        run: |
+          mkdir testResults
+          newman run ./postman/${{inputs.postmanCollectionFile}} -e ./postman/${{inputs.postmanEnvironmentFile}} --global-var "baseUrl=${{ steps.vars.outputs.target_url }}" -r htmlextra --reporter-htmlextra-export ./testResults/htmlreport${{ steps.date.outputs.NOW }}.html --reporter-htmlextra-darkTheme > ./testResults/postmanReport${{ steps.date.outputs.NOW }}.html
+          
+      - id: 'auth'
+        if: ${{always() && inputs.postmanCollectionFile != '' }}
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          workload_identity_provider: 'projects/792156332528/locations/global/workloadIdentityPools/struxhub-identity-pool/providers/struxhub-identity-provider'
+          service_account: 'github@struxhub-app.iam.gserviceaccount.com'
+
+      - name: Save postman test results to GCP Cloud Storage
+        if: ${{always() && inputs.postmanCollectionFile != '' }}
+        id: upload-files
+        uses: google-github-actions/upload-cloud-storage@v0.4.0
+        with:
+          path: testResults
+          destination: postman-test-results
+
+      - name: Print test results uploaded
+        if: ${{always() && inputs.postmanCollectionFile != '' }}
+        uses: simpleactions/create-issue-comment@v1.0.0
+        with:
+          github_token: ${{secrets.STRUXHUB_GPR_TOKEN}}
+          body: |
+            Test results are [here](https://console.cloud.google.com/storage/browser/postman-test-results/testResults;tab=objects?project=struxhub-app&prefix=&forceOnObjectsSortingFiltering=true).
+            Files: ${{steps.upload-files.outputs.uploaded}}
