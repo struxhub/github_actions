@@ -105,7 +105,7 @@ jobs:
           cluster_name: ${{inputs.clusterName}}
           location: 'us-central1-a'
           project_id: ${{inputs.projectName}}
-      
+
       - name: Configure Kubernetes
         run: |
           kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}

@@ -52,13 +52,26 @@ jobs:
       - name: Configure Docker to use Google Cloud Platform
         run: |
           gcloud auth configure-docker --quiet
+
+      - id: 'get-credentials-dev'
+        name: 'Get GKE credentials dev'
+        if: ${{ steps.vars.outputs.environment == 'dev' || steps.vars.outputs.environment == 'qa' }}
+        uses: 'google-github-actions/get-gke-credentials@v0'
+        with:
+          cluster_name: 'struxhub-dev'
+          location: 'us-central1-a'
+          project_id: 'struxhub-app'
+      - id: 'get-credentials-app'
+        name: 'Get GKE credentials app'
+        if: ${{ steps.vars.outputs.environment != 'dev' && steps.vars.outputs.environment != 'qa' }}
+        uses: 'google-github-actions/get-gke-credentials@v0'
+        with:
+          cluster_name: 'struxhub-app'
+          location: 'us-central1-a'
+          project_id: 'struxhub-app'
+
       - name: Configure Kubernetes
         run: |
-          if [ "${{ steps.vars.outputs.environment }}" == "dev" ] || [ "${{ steps.vars.outputs.environment }}" == "qa" ]; then
-            gcloud container clusters get-credentials struxhub-dev --zone us-central1-a --project struxhub-app
-          else
-            gcloud container clusters get-credentials struxhub-app --zone us-central1-a --project struxhub-app
-          fi
           kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
       - name: Get Current Deployed Version
         id: current_version
