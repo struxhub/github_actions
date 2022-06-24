@@ -111,9 +111,16 @@ jobs:
         run: |
           gcloud auth configure-docker --quiet
 
+      - id: 'get-credentials'
+        name: 'Get GKE credentials'
+        uses: 'google-github-actions/get-gke-credentials@v0'
+        with:
+          cluster_name: ${{inputs.clusterName}}
+          location: 'us-central1-a'
+          project_id: ${{inputs.projectName}}
+
       - name: Configure Kubernetes
         run: |
-          gcloud container clusters get-credentials ${{inputs.clusterName}} --zone us-central1-a --project ${{inputs.projectName}}
           kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
 
       - name: Build Docker image

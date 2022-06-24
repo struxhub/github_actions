@@ -71,9 +71,16 @@ jobs:
           workload_identity_provider: 'projects/792156332528/locations/global/workloadIdentityPools/struxhub-identity-pool/providers/struxhub-identity-provider'
           service_account: 'github@struxhub-app.iam.gserviceaccount.com'
 
+      - id: 'get-credentials'
+        name: 'Get GKE credentials'
+        uses: 'google-github-actions/get-gke-credentials@v0'
+        with:
+          cluster_name: ${{inputs.clusterName}}
+          location: 'us-central1-a'
+          project_id: ${{inputs.projectName}}
+
       - name: Configure Kubernetes
         run: |
-          gcloud container clusters get-credentials ${{inputs.clusterName}} --zone us-central1-a --project ${{inputs.projectName}}
           kubectl config set-context --current --namespace=${{ steps.vars.outputs.namespace }}
 
       - name: Remove Preview Environment
